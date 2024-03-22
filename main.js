@@ -1,11 +1,12 @@
 (function () {
   var canvas = document.getElementById("canvas");
   var ctx = canvas.getContext("2d");
+  
   canvas.style["backgroundColor"] = "#000";
   canvas.width = innerWidth;
   canvas.height = innerHeight;
   canvas.addEventListener("click", clickHandler);
-  
+
   /* constants*/
 
   const STORE = "ㄱㄴㄷㄹㅁㅂㅅㅇㅈㅊㅋㅌㅍㅎ";
@@ -15,75 +16,30 @@
   const TIME = 10;
 
   /* variables */
-
-  var q = "";
-  var pass;
-  var start;
-  var p;
-  var s;
-  var _s;
-  var over;
+  
+  var p = 1.5;
+  var q = createQuiz();
+  var s = 0;
+  var _s = 0;
+  var over = false
 
   /* run the game */
 
-  setInterval(run, 10);
-
-  function run() {
+  setInterval(() => {
     clearCanvas();
-    drawTitle();
-    
-    if (!start) {
-      initialize();
-      drawStart();
-      return;
-    }
-    
-    drawTimer();
+    drawBackground();
     
     if (!over) {
-      setTime();
       drawFill();
       drawQuiz();
-
-      if (s == TIME) {
-        over = true;
-      }
-
-      if (pass) {
-        q = setQuiz();
-        p = 1.5;
-        s = 0;
-        _s = 0;
-  
-        pass = false;
-      }
     } else {
       drawOver();
     }
-  }
 
-  function initialize() {
-    q = setQuiz();
-    p = 1.5;
-    s = 0;
-    _s = 0;
-
-    pass = null;
-    over = false;
-  }
+    setTime();
+  }, 10);
 
   /* functions */
-
-  function clearCanvas() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  }
-
-  function setQuiz() {
-    var i1 = Math.floor(Math.random() * STORE.length);
-    var i2 = Math.floor(Math.random() * STORE.length);
-
-    return STORE[i1] + STORE[i2];
-  }
 
   function setTime() {
     _s++
@@ -92,18 +48,31 @@
       s++;
       _s = 0;
     }
+
+    if (s == TIME) {
+      over = true;
+    }
+  }
+  
+  function createQuiz() {
+    var a = Math.floor(Math.random() * STORE.length);
+    var b = Math.floor(Math.random() * STORE.length);
+
+    return STORE[a] + STORE[b];
   }
 
   /* draw */
+  
+  function clearCanvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
 
-  function drawTitle() {
+  function drawBackground() {
     ctx.font = "30px Monospace";
     ctx.fillStyle = "#fff";
     ctx.textAlign = "center";
     ctx.fillText("# CHOSUNG GAME", CX, 60);
-  }
 
-  function drawTimer() {
     ctx.beginPath();
     ctx.lineWidth = 16;
     ctx.strokeStyle = "#eee";
@@ -113,25 +82,12 @@
 
   function drawFill() {
     p += (20 / TIME) / 1000;
-    
-    if (p == 2) p = 0;
-    
+
     ctx.beginPath();
     ctx.lineWidth = 16;
     ctx.strokeStyle = "#08f";
     ctx.arc(CX, CY, RADIUS, p * Math.PI, 1.5 * Math.PI);
     ctx.stroke();
-  }
-
-  function drawStart() {
-    ctx.font = "20px Monospace";
-    ctx.fillStyle = "#fff";
-    ctx.textAlign = "center";
-    ctx.fillText(
-      "Touch or click to start",
-      CX,
-      CY + (20 * 0.5)
-    );
   }
 
   function drawQuiz() {
@@ -150,21 +106,17 @@
   /* control */
 
   function clickHandler(e) {
-    if (!start) {
-      start = true;
-      return;
-    }
-
-    if (over) {
-      start = false;
-      return;
-    }
-
     var a = Math.pow((e.clientX - CX), 2) + Math.pow((e.clientY - CY), 2);
     var b = Math.pow(RADIUS, 2);
 
     if (a <= b) {
-      pass = true;
+      p = 1.5;
+      q = createQuiz();
+      s = 0;
+      _s = 0;
     }
   }
-})()
+})();
+
+
+
