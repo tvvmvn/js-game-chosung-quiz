@@ -1,88 +1,96 @@
-(function () {
-  // canvas
-  var canvas = document.getElementById("canvas");
-  var ctx = canvas.getContext("2d");
-  canvas.style["backgroundColor"] = "#000";
-  canvas.width = innerWidth;
-  canvas.height = innerHeight;
-  canvas.addEventListener("click", clickHandler);
+// canvas
+var canvas = document.getElementById("canvas");
+var ctx = canvas.getContext("2d");
+canvas.style["backgroundColor"] = "#000";
+canvas.width = innerWidth;
+canvas.height = innerHeight;
 
+class Game {
   // constants 
-  const CX = canvas.width / 2;
-  const CY = 240;
-  const RADIUS = 120;
-  const TIME = 5;
-
+  CX = canvas.width / 2;
+  CY = 240;
+  RADIUS = 120;
+  TIME = 1000;
   // variables
-  var p = 1.5;
-  var quiz = createQuiz();
-  var s = 0;
-  var _s = 0;
+  p = 1.5;
+  quiz = this.createQuiz();
+  s = 0;
+  timer;
 
-  // controller
-  function clickHandler(e) {
-    var a = Math.pow((e.clientX - CX), 2) + Math.pow((e.clientY - CY), 2);
-    var b = Math.pow(RADIUS, 2);
-
-    if (a <= b) {
-      s = 0;
-      _s = 0;
-      quiz = createQuiz();
-      p = 1.5;
-    }
+  constructor() {
+    this.timer = setInterval(() => this.actionPerformed(), 10);
   }
 
-  // functions 
-  function createQuiz() {
+  createQuiz() {
     const STORE = "ㄱㄴㄷㄹㅁㅂㅅㅇㅈㅊㅋㅌㅍㅎ";
-
+  
     var a = Math.floor(Math.random() * STORE.length);
     var b = Math.floor(Math.random() * STORE.length);
-
+  
     return STORE[a] + STORE[b];
   }
 
-  // run
-  function main() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // frame
+  renderFrame() {
     ctx.beginPath();
     ctx.lineWidth = 16;
     ctx.strokeStyle = "#eee";
-    ctx.arc(CX, CY, RADIUS, 0, 2 * Math.PI);
+    ctx.arc(this.CX, this.CY, this.RADIUS, 0, 2 * Math.PI);
     ctx.stroke();
+  }
 
-    // time
-    _s++;
+  renderGauge() {
+    this.p += (20 / (this.TIME / 100)) / 1000;
 
-    if (_s == 100) { 
-      s++;
-      _s = 0;
-    }
+    ctx.beginPath();
+    ctx.lineWidth = 16;
+    ctx.strokeStyle = "#08f";
+    ctx.arc(this.CX, this.CY, this.RADIUS, this.p * Math.PI, 1.5 * Math.PI);
+    ctx.stroke();
+  }
 
-    if (s == TIME) {
-      ctx.font = "30px Monospace";
-      ctx.textAlign = "center";
-      ctx.fillText("TIME OVER", CX, CY + (20 * 0.5));
+  renderQuiz() {
+    ctx.font = "100px Monospace";
+    ctx.fillStyle = "#fff";
+    ctx.textAlign = "center";
+    ctx.fillText(this.quiz, this.CX, this.CY + (100 * 0.35));
+  }
+
+  renderMessage(message) {
+    ctx.font = "30px Monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(message, this.CX, this.CY + (20 * 0.5));
+  }
+
+  clearCanvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+
+  actionPerformed() {
+    this.clearCanvas();
+    this.renderFrame();
+  
+    this.s++;  
+  
+    if (this.s == this.TIME) {
+      this.renderMessage("GAME OVER");
+      clearInterval(this.timer);
     } else {
-      // gauge
-      p += (20 / TIME) / 1000;
-      ctx.beginPath();
-      ctx.lineWidth = 16;
-      ctx.strokeStyle = "#08f";
-      ctx.arc(CX, CY, RADIUS, p * Math.PI, 1.5 * Math.PI);
-      ctx.stroke();
-
-      // quiz
-      ctx.font = "100px Monospace";
-      ctx.fillStyle = "#fff";
-      ctx.textAlign = "center";
-      ctx.fillText(quiz, CX, CY + (100 * 0.35));
-
-      requestAnimationFrame(main);
+      this.renderGauge();
+      this.renderQuiz();
     }
   }
 
-  main();
-})();
+  clickHandler(e) {
+    var a = Math.pow((e.clientX - this.CX), 2) + Math.pow((e.clientY - this.CY), 2);
+    var b = Math.pow(this.RADIUS, 2);
+  
+    if (a <= b) {
+      this.s = 0;
+      this.quiz = this.createQuiz();
+      this.p = 1.5;
+    }
+  }
+}
+
+var game = new Game();
+canvas.addEventListener("click", (e) => game.clickHandler(e));
