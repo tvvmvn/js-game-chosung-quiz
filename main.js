@@ -12,22 +12,35 @@ class Game {
   RADIUS = 120;
   TIME = 1000;
   // variables
+  quiz;
   p = 1.5;
-  quiz = this.createQuiz();
   s = 0;
+  start = false;
   timer;
 
   constructor() {
     this.timer = setInterval(() => this.actionPerformed(), 10);
   }
 
-  createQuiz() {
+  initTime() {
+    this.s = 0;
+  }
+
+  initGauge() {
+    this.p = 1.5;
+  }
+
+  setGauge() {
+    this.p += (20 / (this.TIME / 100)) / 1000;
+  }
+
+  updateQuiz() {
     const STORE = "ㄱㄴㄷㄹㅁㅂㅅㅇㅈㅊㅋㅌㅍㅎ";
   
     var a = Math.floor(Math.random() * STORE.length);
     var b = Math.floor(Math.random() * STORE.length);
   
-    return STORE[a] + STORE[b];
+    this.quiz = STORE[a] + STORE[b];
   }
 
   renderFrame() {
@@ -38,9 +51,14 @@ class Game {
     ctx.stroke();
   }
 
-  renderGauge() {
-    this.p += (20 / (this.TIME / 100)) / 1000;
+  renderInstruction() {
+    ctx.font = "30px Monospace";
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#fff";
+    ctx.fillText("START GAME", this.CX, this.CY + (20 * 0.5));
+  }
 
+  renderGauge() {
     ctx.beginPath();
     ctx.lineWidth = 16;
     ctx.strokeStyle = "#08f";
@@ -50,32 +68,45 @@ class Game {
 
   renderQuiz() {
     ctx.font = "100px Monospace";
-    ctx.fillStyle = "#fff";
     ctx.textAlign = "center";
+    ctx.fillStyle = "#fff";
     ctx.fillText(this.quiz, this.CX, this.CY + (100 * 0.35));
   }
 
-  renderMessage(message) {
+  renderOver() {
     ctx.font = "30px Monospace";
     ctx.textAlign = "center";
-    ctx.fillText(message, this.CX, this.CY + (20 * 0.5));
+    ctx.fillStyle = "#fff";
+    ctx.fillText("GAME OVER", this.CX, this.CY + (20 * 0.5));
   }
 
-  clearCanvas() {
+  clearScreen() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
 
   actionPerformed() {
-    this.clearCanvas();
+    this.clearScreen();
     this.renderFrame();
+
+    // Instructions
+    if (!this.start) {
+      this.renderInstruction();
+      return;
+    }
   
+    // Gauge
+    this.setGauge();
+    this.renderGauge();
+
+    // Time
     this.s++;  
   
+    // Game Over
     if (this.s == this.TIME) {
-      this.renderMessage("GAME OVER");
+      this.renderOver("GAME OVER");
       clearInterval(this.timer);
     } else {
-      this.renderGauge();
+      // Quiz
       this.renderQuiz();
     }
   }
@@ -85,9 +116,13 @@ class Game {
     var b = Math.pow(this.RADIUS, 2);
   
     if (a <= b) {
-      this.s = 0;
-      this.quiz = this.createQuiz();
-      this.p = 1.5;
+      if (!this.start) {
+        this.start = true;
+      } 
+
+      this.updateQuiz();
+      this.initTime();
+      this.initGauge();
     }
   }
 }
